@@ -1,5 +1,5 @@
 # intro
-Wget-2-zim is a simple bash script with some nifty tricks that can be used to archive websites on the internet. It does not require ServiceWorkers.
+Wget-2-zim is a simple bash script with some nifty tricks that can be used to archive websites on the internet. It does not require ServiceWorkers and will drop a ZIM file that can be read with Kiwix.
 
 # how to use 
 
