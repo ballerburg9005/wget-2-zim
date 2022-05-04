@@ -1,10 +1,12 @@
-# wget-2-zim
-Creates ZIM files for Kiwix from arbitrary websites with wget and some tricks (doesn't need webservices).
-
-I will probably add docker later
+# intro
+Wget-2-zim is a simple bash script with some nifty tricks that can be used to archive websites on the internet. It does not require ServiceWorkers and will drop a [ZIM file](https://wiki.openzim.org/) that can be read with [Kiwix](https://www.kiwix.org/en/).
 
 # how to use 
 
 > ./wget-2-zim.sh https://ballerburg.us.to
+
+# notes
+
+I will probably add docker later
 
 
