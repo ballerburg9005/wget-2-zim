@@ -13,7 +13,7 @@ Now just open the ZIM file in Kiwix.
 
 There are quite some options now that you can use in order to reduce the file size and grab less content (or more). The default options are very very generous to archive as much as possible, even larger (up to 128MB) xls, epub or pdf files, video, audio and so forth are included by default. Archives and program files are excluded by default, however they can be included with a command line option. Ordinary files or files with unknown file type are deleted from the ZIM if they exceed 2 MB (this can be changed as well).
 
-# notes
+# future notes
 
 I will probably add docker later
 
