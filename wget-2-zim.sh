@@ -70,12 +70,13 @@ WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -osa "/.*$" | sed 's/\?/%3F
 
 # download with wget
 
-wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off \
+wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=0.2 --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
 	$URL
 
+echo "Wget finished."
 
 # various URL repairs & anti GDRP stuff, plus manual wget download of images, documents, media files that are linked to external domains
 
@@ -92,6 +93,8 @@ find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) \
 			# 	grep image, media and document URLs from external sites
 			#	loop over URLs and fetch them with wget
 			#	make those URLs relative in original html file
+			#	TODO could also be used to fetch iframes and external links non-recursively -> sounds quite useful to have as command line option
+			#	TODO only fetches ...pdf" currently but not ...pdf?asdfasdf" -> really desirable?
 
 
 # various shenanegans to deal with media and large files
@@ -153,7 +156,7 @@ echo "writing ZIM"
 
 if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(awk '/<title>/,/<\/title\>/' $DOMAIN/index.html | tr '\n' ' ' | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g")" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
 	echo "Success in creating ZIM file!"
-	# TODO debug, just uncomment
+	# Maybe clean up or not? Some sites were still throttling me with --wait=0.5, maybe running wget twice is safer
 #	rm -rf ./$DOMAIN
 else
 	echo "FAILURE! Left $DOMAIN download directory in place."
