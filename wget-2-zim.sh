@@ -80,6 +80,7 @@ WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -o "/.*$" | sed 's/\?/%3F/g
 
 # download with wget
 
+function thewget {
 wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=$WGGETWAIT --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
@@ -87,13 +88,18 @@ wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certifica
 	$URL
 
 echo "Wget finished."
+}
+
 
 # various URL repairs & anti GDRP stuff, plus manual wget download of images, documents, media files that are linked to external domains
 
+function postwget {
 find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g")" ' \;
 
 iterscript=$(mktemp);
 
+
+# TODO the new files from overreach need to be fixed sa well ... so a second pass with this script is required - needs restructuring
 cat <<- "THEREISNOPLACELIKEHOME" > "$iterscript"
 #!/bin/bash
 DOMAIN="$1"
@@ -108,10 +114,11 @@ NOOVERREACH="$5"
 # - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
 stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)("[^>]*>)/\1.css\3/g'
 
-# - "http://example.com" -> /
 # - "http://example.com/asdf/asdf" -> /asdf/asdf
-nodomain1='s#(["])http[s]*://'"$DOMAIN"'/*(["])#"/"#g'
-nodomain2='s#(["])http[s]*://'"$DOMAIN"'/#/\1#g'
+nodomain='s#(["])http[s]*://'"$DOMAIN"'/*([^"]*")#\1\2//#g'
+
+# this useless tag can cause a segfault in zimwriterfs
+zimwriterfsbug='s#<meta[^>]*http-equiv="refresh"[^>]*>#/#g'
 
 # - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* etc sort of cheap but better than nothing
 antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"]'
@@ -122,8 +129,8 @@ antishit="$antishit { display: none !important; } body { overflow: auto !importa
 
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 	| sed -E "$stylesheet;${stylesheet//\"/\'}" \
-	| sed -E "$nodomain1;${nodomain1//\"/\'}" \
-	| sed -E "$nodomain2;${nodomain2//\"/\'}" \
+	| sed -E "$nodomain;${nodomain//\"/\'}" \
+	| sed -E "$zimwriterfsbug;${zimwriterfsbug//\"/\'}" \
 	| sed -E "$antishit" \
 	|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE" 
 rm ${tmpfile}
@@ -143,10 +150,11 @@ urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'
 
 # - loop over URLs and fetch them with wget
 
-for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
-	if ! grep -qFox "$url" $EXTERNALURLS; then
+for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
+	if ! {     grep -qFox "$url" $EXTERNALURLS \
+		|| echo "$WGETREJECT" | grep -Foq "$(echo "$url" | sed -E 's#(.*)(\.[^\?\.]*)(\?.*)*$#\2#g')" ; }; then
 		echo "DEBUG: $url ( requested by: $FILE )"
-		wget --timeout=3s --no-check-certificate -e robots=off -p \
+		wget --timeout=3s --no-check-certificate -e robots=off --tries=6 -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
 			--reject "$WGETREJECT" \
@@ -176,8 +184,12 @@ find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript"
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
 
+}
+
+
 # various shenanegans to deal with media and large files
 
+function largedelete {
 if [[ "${OPTS[any-max]}" != "" ]]; then find $DOMAIN -type f -size "+${OPTS[any-max]}M" -delete; fi
 
 if [[ "${OPTS[not-media-max]}" != "" ]]; then 	find $DOMAIN -type f -not \( \
@@ -207,7 +219,12 @@ if [[ "${OPTS[video-max]}" != "" ]]; then 	find $DOMAIN -type f \( \
 				-name '*\.3g*' -or -name '*\.avi' -or -name '*\.flv*' -or -name '*\.h26*' -or -name '*\.m*v' -or -name '*\.mp*g' -or -name '*\.swf' -or -name '*\.wmv' -or -name '*\.mkv' -or -name '*\.mp4' -or -name '*\.divx' -or -name '*\.f4v' -or -name '*\.ogv' -or -name '*\.webm' \
 									\) -size "+${OPTS[video-max]}M" -delete;
 fi
+}
 
+
+thewget
+postwget
+largedelete
 
 # favicon
  
