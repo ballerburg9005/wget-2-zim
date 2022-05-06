@@ -125,7 +125,6 @@ tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 rm ${tmpfile}
 
 ### this section downloads missing external content that's somehow present in the page (e.g. embedded as images)
-# - TODO could also be used to fetch iframes and external links non-recursively -> sounds quite useful to have as command line option
 
 urlregex_media="(<[^>]*\")(https*:/)(/[^/\"]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd)(\?[^\"]*)*(\"[^>]*>)"
 urlregex_any="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^\"]*)(\"[^>]*>)"
@@ -156,7 +155,7 @@ done
 
 # remove https:/ in final command to make relative URLs -> /asdf
 
-# - index.html?asdf -> index.html%3Fasdf (literally opens files with question marks in them, rather than making it a parameter)
+# - index.html?asdf -> index.html%3Fasdf  - files won't load otherwise
 qmark='s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'
 
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
