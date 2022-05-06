@@ -23,11 +23,11 @@ if [[ " --help -help -h " =~ " $1 " || "$1" == "" ]]; then
 	echo "	--music-max 	[SIZE (MB)]	Any music file larger will be excluded from ZIM. Default = unset"
 	echo "	--video-max 	[SIZE (MB)]	Any video file larger will be excluded from ZIM. Default = unset"
 	echo "	--wget-depth			Set this to 1 or 3 if you want to make very shallow copies. Default = 7"
-	echo "	--include-zip 			Includes all sorts of archives (zip, rar, 7z, gz, etc). Default = no"
-	echo "	--include-exe			Includes all sorts of program files (exe, msi, deb, rpm, etc). Default = no"
-	echo "	--include-any			Download any file type. Default = no"
-	echo "	--no-overreach-media		Don't overreach by downloading media files from external domains (might affect images directly visible on the page). Default = no"
-	echo "	--no-overreach-any		Don't overreach by downloading any sort of src= and href= conent from external domains. Default = no"
+	echo "	--include-zip 			Includes all sorts of archives (zip, rar, 7z, gz, etc)."
+	echo "	--include-exe			Includes all sorts of program files (exe, msi, deb, rpm, etc)."
+	echo "	--include-any			Download any file type."
+	echo "	--no-overreach-media		Don't overreach by downloading media files from external domains (might affect images directly visible on the page)."
+	echo "	--overreach-any			Overreach by downloading any sort of src= and href= content from external domains."
 
 	exit -1
 fi
@@ -42,9 +42,9 @@ if ! [[ " $@ " =~ " --include-zip " ]]; then WGETREJECT="$WGETREJECT$WGETREJECT_
 if ! [[ " $@ " =~ " --include-exe " ]]; then WGETREJECT="$WGETREJECT$WGETREJECT_PROGRAM"; fi
 if   [[ " $@ " =~ " --include-any " ]]; then WGETREJECT=""; fi
 
-NOOVERREACH=""
+NOOVERREACH="a"
 if   [[ " $@ " =~ " --no-overreach-media " ]]; then NOOVERREACH="${NOOVERREACH}m"; fi
-if   [[ " $@ " =~ " --no-overreach-any "   ]]; then NOOVERREACH="${NOOVERREACH}a"; fi
+if   [[ " $@ " =~ " --overreach-any "   ]]; then NOOVERREACH="$(echo "${NOOVERREACH}" | sed "s/a//g")"; fi
 
 declare -A OPTS=( [any-max]=128 [not-media-max]=2 [wget-depth]=7 )
 for opt in any-max not-media-max picture-max document-max music-max video-max wget-depth; do
@@ -95,7 +95,8 @@ cat <<- "THEREISNOPLACELIKEHOME" > "$iterscript"
 DOMAIN="$1"
 FILE="$2"
 EXTERNALURLS="$3"
-NOOVERREACH="$4"
+WGETREJECT="$4"
+NOOVERREACH="$5"
 
 
 ### this section fixes links and does anti-cookie CSS
@@ -140,12 +141,13 @@ urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'
 # - loop over URLs and fetch them with wget
 
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
-	if ! [[ "$url" == "$(grep -F "$url" $EXTERNALURLS)" ]]; then
+	if ! [[ "$url" == "$(grep -oF "$url" $EXTERNALURLS)" ]]; then
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
-			--wait=0.$(( RANDOM % 6 )) \
+			--reject "$WGETREJECT" \
+			--wait=0.$(( RANDOM % 1 )) \
 			--directory-prefix="$DOMAIN/wget-2-zim-overreach" "$url"
 	fi
 	echo "$url" >> $EXTERNALURLS
@@ -168,7 +170,7 @@ THEREISNOPLACELIKEHOME
 
 chmod 755 $iterscript
 EXTERNALURLS=$(mktemp)
-find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
+find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
 
