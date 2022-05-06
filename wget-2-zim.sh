@@ -76,7 +76,7 @@ WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -o "/.*$" | sed 's/\?/%3F/g
 
 # download with wget
 
-wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=0.0 --tries=6 \
+wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=0.4 --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
@@ -109,11 +109,11 @@ nodomain1='s#(["])http[s]*://'"$DOMAIN"'/*(["])#"/"#g'
 nodomain2='s#(["])http[s]*://'"$DOMAIN"'/#/\1#g'
 
 # - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* etc sort of cheap but better than nothing
-antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"], '
+antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"]'
 for word in cookie banner disclaimer consent gdpr privacy popup adsby adsense advert sponsored adcontainer  -ads- -ad- ads_ ads- _ads leaderboard- ad-wrapper adholder adslot adspace adspot adv- boxad contentad footer-ad header-ad; do 
 	antishit="$antishit, [id*='$word'], [class*='$word']"
 done
-antishit='$antishit { display: none !important; } body { overflow: auto !important; }</style>#g'
+antishit="$antishit { display: none !important; } body { overflow: auto !important; }</style>#g"
 
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 	| sed -E "$stylesheet;${stylesheet//\"/\'}" \
@@ -127,24 +127,25 @@ rm ${tmpfile}
 # - TODO could also be used to fetch iframes and external links non-recursively -> sounds quite useful to have as command line option
 
 urlregex_media="(<[^>]*\")(https*:/)(/[^/\"]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd)(\?[^\"]*)*(\"[^>]*>)"
-urlregex_any="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^\"])(\"[^>]*>)"
+urlregex_any="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^\"]*)(\"[^>]*>)"
 urlmod="s#<[^>]*\"(https*://[^\"]*)\".*#\1#g"
 
 if echo "$NOOVERREACH" | grep -q "m"; then urlregex_media="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
 if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
 
 # - grep image, media and document URLs from external sites
-urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "$urlregex_media" -e "${urlregex_any//\"/\'}" | sed -E "$urlmod")"
-urls_single="$(cat "$FILE" | tr '\n' 'ɰ'  | grep -oE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
+urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "$urlregex_media" -e "$urlregex_any" | sed -E "$urlmod")"
+urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
 
 # - loop over URLs and fetch them with wget
+
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
-	if ! grep -qF "$url" $EXTERNALURLS; then
+	if ! [[ "$url" == "$(grep -F "$url" $EXTERNALURLS)" ]]; then
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
-			--wait=0.$(( RANDOM % 3 )) \
+			--wait=0.$(( RANDOM % 6 )) \
 			--directory-prefix="$DOMAIN/wget-2-zim-overreach" "$url"
 	fi
 	echo "$url" >> $EXTERNALURLS
@@ -166,7 +167,7 @@ rm ${tmpfile}
 THEREISNOPLACELIKEHOME
 
 chmod 755 $iterscript
-EXTERNALURLS=$(mktemp);
+EXTERNALURLS=$(mktemp)
 find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
@@ -230,7 +231,6 @@ echo "writing ZIM"
 
 if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -oE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
 	echo "Success in creating ZIM file!"
-	# Maybe clean up or not? Some sites were still throttling me with --wait=0.5, maybe running wget twice is safer
 #	rm -rf ./$DOMAIN
 else
 	echo "FAILURE! Left $DOMAIN download directory in place."
