@@ -159,7 +159,7 @@ tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 		| sed -E "s#$urlregex_media#\1\3\4\5\6#g;s#${urlregex_media//\"/\'}#\1\3\4\5\6#g" \
 		| sed -E "s#$urlregex_any#\1\2\4\5#g;s#${urlregex_any//\"/\'}#\1\2\4\5#g" \
 		| sed -E "$qmark;${qmark//\"\'}" \
-		|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE""'"
+		|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE"
 rm ${tmpfile}
 
 
