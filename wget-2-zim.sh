@@ -28,6 +28,7 @@ if [[ " --help -help -h " =~ " $1 " || "$1" == "" ]]; then
 	echo "	--include-any			Download any file type."
 	echo "	--no-overreach-media		Don't overreach by downloading media files from external domains (might affect images directly visible on the page)."
 	echo "	--overreach-any			Overreach by downloading any sort of src= and href= content from external domains."
+	echo "	--turbo				Disable all download delays (will probably result half the files missing due to throttling with false 404s or ban)"
 
 	exit -1
 fi
@@ -41,6 +42,9 @@ if [[ "$URL" == "" ]]; then echo "ERROR. Can't find URL in arguments. Try adding
 if ! [[ " $@ " =~ " --include-zip " ]]; then WGETREJECT="$WGETREJECT$WGETREJECT_ARCHIVE"; fi
 if ! [[ " $@ " =~ " --include-exe " ]]; then WGETREJECT="$WGETREJECT$WGETREJECT_PROGRAM"; fi
 if   [[ " $@ " =~ " --include-any " ]]; then WGETREJECT=""; fi
+
+WGGETWAIT="0.4"
+if   [[ " $@ " =~ " --turbo " ]]; then WGGETWAIT="0"; fi
 
 NOOVERREACH="a"
 if   [[ " $@ " =~ " --no-overreach-media " ]]; then NOOVERREACH="${NOOVERREACH}m"; fi
@@ -76,7 +80,7 @@ WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -o "/.*$" | sed 's/\?/%3F/g
 
 # download with wget
 
-wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=0.4 --tries=6 \
+wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=$WGGETWAIT --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
@@ -140,14 +144,12 @@ urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'
 # - loop over URLs and fetch them with wget
 
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
-	# this grep sort of sucks, but then it doesn't matter much
-	if ! [[ "$url" == "$(grep -oF "$url" $EXTERNALURLS)" ]]; then
+	if ! grep -oxF "$url" $EXTERNALURLS; then
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
 			--reject "$WGETREJECT" \
-			--wait=0.$(( RANDOM % 1 )) \
 			--directory-prefix="$DOMAIN/wget-2-zim-overreach" "$url"
 	fi
 	echo "$url" >> $EXTERNALURLS
