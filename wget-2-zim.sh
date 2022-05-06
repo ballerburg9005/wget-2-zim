@@ -26,6 +26,8 @@ if [[ " --help -help -h " =~ " $1 " || "$1" == "" ]]; then
 	echo "	--include-zip 			Includes all sorts of archives (zip, rar, 7z, gz, etc). Default = no"
 	echo "	--include-exe			Includes all sorts of program files (exe, msi, deb, rpm, etc). Default = no"
 	echo "	--include-any			Download any file type. Default = no"
+	echo "	--no-overreach-media		Don't overreach by downloading media files from external domains (might affect images directly visible on the page). Default = no"
+	echo "	--no-overreach-any		Don't overreach by downloading any sort of src= and href= conent from external domains. Default = no"
 
 	exit -1
 fi
@@ -39,6 +41,10 @@ if [[ "$URL" == "" ]]; then echo "ERROR. Can't find URL in arguments. Try adding
 if ! [[ " $@ " =~ " --include-zip " ]]; then WGETREJECT="$WGETREJECT$WGETREJECT_ARCHIVE"; fi
 if ! [[ " $@ " =~ " --include-exe " ]]; then WGETREJECT="$WGETREJECT$WGETREJECT_PROGRAM"; fi
 if   [[ " $@ " =~ " --include-any " ]]; then WGETREJECT=""; fi
+
+NOOVERREACH=""
+if   [[ " $@ " =~ " --no-overreach-media " ]]; then NOOVERREACH="${NOOVERREACH}m"; fi
+if   [[ " $@ " =~ " --no-overreach-any "   ]]; then NOOVERREACH="${NOOVERREACH}a"; fi
 
 declare -A OPTS=( [any-max]=128 [not-media-max]=2 [wget-depth]=7 )
 for opt in any-max not-media-max picture-max document-max music-max video-max wget-depth; do
@@ -74,7 +80,7 @@ wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certifica
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
-	$URL
+#	$URL
 
 echo "Wget finished."
 
@@ -89,44 +95,47 @@ cat <<- "THEREISNOPLACELIKEHOME" > "$iterscript"
 DOMAIN="$1"
 FILE="$2"
 EXTERNALURLS="$3"
+NOOVERREACH="$4"
 
 
 ### this section fixes links and does anti-cookie CSS
 
-
 # - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
 stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)"([^>]*>)/\1.css"\3/g'
 
-# - index.html?asdf -> index.html%3Fasdf (literally opens files with question marks in them, rather than making it a parameter)
-qmark='s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'
-
 # - "http://example.com" -> /
-# - "http://example.com/asdf/asdf" -> asdf/asdf
+# - "http://example.com/asdf/asdf" -> /asdf/asdf
 nodomain1='s#(["])http[s]*://'"$DOMAIN"'/*(["])#"/"#g'
-nodomain2='s#(["])http[s]*://'"$DOMAIN"'/#\1#g'
+nodomain2='s#(["])http[s]*://'"$DOMAIN"'/#/\1#g'
 
-# - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* *disclaimer* *gdpr* *privacy* *popup* ... sort of cheap but better than nothing
-antigdrp='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="cookie"], [id*="cookie"], [id*="banner"], [class*="banner"], [id*="disclaimer"], [class*="disclaimer"], [id*="consent"], [class*="consent"], [id*="gdpr"], [class*="gdpr"], [id*="privacy"], [class*="privacy"], [id*="popup"], [class*="popup"] { display: none !important; } body { overflow: auto !important; }</style>#g'
+# - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* etc sort of cheap but better than nothing
+antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"], '
+for word in cookie banner disclaimer consent gdpr privacy popup adsby adsense advert sponsored adcontainer  -ads- -ad- ads_ ads- _ads leaderboard- ad-wrapper adholder adslot adspace adspot adv- boxad contentad footer-ad header-ad; do 
+	antishit="$antishit, [id*='$word'], [class*='$word']"
+done
+antishit='$antishit { display: none !important; } body { overflow: auto !important; }</style>#g'
 
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 	| sed -E "$stylesheet;${stylesheet//\"/\'}" \
-	| sed -E "$qmark;${qmark//\"\'}" \
 	| sed -E "$nodomain1;${nodomain1//\"/\'}" \
 	| sed -E "$nodomain2;${nodomain2//\"/\'}" \
-	| sed -E "$antigdrp" \
+	| sed -E "$antishit" \
 	|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE" 
 rm ${tmpfile}
 
 ### this section downloads missing external content that's somehow present in the page (e.g. embedded as images)
 # - TODO could also be used to fetch iframes and external links non-recursively -> sounds quite useful to have as command line option
-# - TODO only fetches ...pdf" currently but not ...pdf?asdfasdf" -> really desirable? -> at this point replaced by %3F ?!
 
-urlregex="(<[^>]*\")(https*://)([^/]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd|xls.|doc.|od.|ppt.)(\"[^>]*>)"
-urlmod="s#<([^>]*\")(https*://)([^/]*/)([^\"]*)(\".*)#\2\3\4#g"
+urlregex_media="(<[^>]*\")(https*:/)(/[^/\"]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd)(\?[^\"]*)*(\"[^>]*>)"
+urlregex_any="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^\"])(\"[^>]*>)"
+urlmod="s#<[^>]*\"(https*://[^\"]*)\".*#\1#g"
+
+if echo "$NOOVERREACH" | grep -q "m"; then urlregex_media="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
+if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
 
 # - grep image, media and document URLs from external sites
-urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -osaE "$urlregex" | sed -E "$urlmod")"
-urls_single="$(cat "$FILE" | tr '\n' 'ɰ'  | grep -osaE "${urlregex//\"/\'}" | sed -E "${urlmod//\"/\'}")"
+urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -osaE -e "$urlregex_media" -e "${urlregex_any//\"/\'}" | sed -E "$urlmod")"
+urls_single="$(cat "$FILE" | tr '\n' 'ɰ'  | grep -osaE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
 
 # - loop over URLs and fetch them with wget
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
@@ -136,27 +145,31 @@ for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
 			--wait=0.$(( RANDOM % 3 )) \
-			--directory-prefix="$DOMAIN" "$url"
+			--directory-prefix="$DOMAIN/wget-2-zim-overreach" "$url"
 	fi
 	echo "$url" >> $EXTERNALURLS
 done
 
-# - make URLs relative in original html file
+# remove https:/ in final command to make relative URLs -> /asdf
+
+# - index.html?asdf -> index.html%3Fasdf (literally opens files with question marks in them, rather than making it a parameter)
+qmark='s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'
 
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
-		| sed -E "s#$urlregex#\1\3\4\5#g;s#${urlregex//\"/\'}#\1\3\4\5#g" \
+		| sed -E "s#$urlregex_media#\1\3\4\5\6#g;s#${urlregex_media//\"/\'}#\1\3\4\5\6#g" \
+		| sed -E "s#$urlregex_any#\1\2\4\5#g;s#${urlregex_any//\"/\'}#\1\2\4\5#g" \
+		| sed -E "$qmark;${qmark//\"\'}" \
 		|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE""'"
 rm ${tmpfile}
-
-# TODO on this one live page, ../ URLS were not working because of the ../ relative path? but when I tested it with a dummy page they were?! What is going on?
 
 
 THEREISNOPLACELIKEHOME
 
-chmod 755 "$iterscript"
+chmod 755 $iterscript
 EXTERNALURLS=$(mktemp);
-find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" \;
-rm $EXTERNALURLS
+find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
+mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
+rm $EXTERNALURLS $iterscript
 
 # various shenanegans to deal with media and large files
 
