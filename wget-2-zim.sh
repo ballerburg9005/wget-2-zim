@@ -86,7 +86,7 @@ echo "Wget finished."
 
 # various URL repairs & anti GDRP stuff, plus manual wget download of images, documents, media files that are linked to external domains
 
-find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' $(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g") ' \;
+find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g")" ' \;
 
 iterscript=$(mktemp);
 
@@ -102,7 +102,7 @@ NOOVERREACH="$5"
 ### this section fixes links and does anti-cookie CSS
 
 # - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
-stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)"([^>]*>)/\1.css"\3/g'
+stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)("[^>]*>)/\1.css\3/g'
 
 # - "http://example.com" -> /
 # - "http://example.com/asdf/asdf" -> /asdf/asdf
