@@ -148,7 +148,7 @@ tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 		|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE""'"
 rm ${tmpfile}
 
-# TODO ZIM files can't have ../ in URLS ... not sure if src="thisdirectory.jpg" even works. This sucks. Maybe if ./ is found we can insert the cwd and if (../) is found the cwd - n times [^/]*/ ...
+# TODO on this one live page, ../ URLS were not working because of the ../ relative path? but when I tested it with a dummy page they were?! What is going on?
 
 
 THEREISNOPLACELIKEHOME
