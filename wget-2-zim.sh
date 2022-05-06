@@ -80,7 +80,7 @@ wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certifica
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
-#	$URL
+	$URL
 
 echo "Wget finished."
 
@@ -141,6 +141,7 @@ urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'
 # - loop over URLs and fetch them with wget
 
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
+	# this grep sort of sucks, but then it doesn't matter much
 	if ! [[ "$url" == "$(grep -oF "$url" $EXTERNALURLS)" ]]; then
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off -p \
