@@ -34,7 +34,7 @@ fi
 
 echo ""
 
-URL="$(echo "$@" | grep -osa "[^[:space:]]*://[^[:space:]]*")"
+URL="$(echo "$@" | grep -o "[^[:space:]]*://[^[:space:]]*")"
 
 if [[ "$URL" == "" ]]; then echo "ERROR. Can't find URL in arguments. Try adding http:// perhaps?"; exit 2; fi
 
@@ -70,8 +70,8 @@ echo ""
 
 # extract strings from URL
 
-DOMAIN="$(echo "$@" | grep "[^[:space:]]*://[^[:space:]]*" | sed 's#^[^/]*//##g;s#/.*$##g')" 
-WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -osa "/.*$" | sed 's/\?/%3F/g')"
+DOMAIN="$(echo "$@" | grep -o "[^[:space:]]*://[^[:space:]]*" | sed 's#^[^/]*//##g;s#/.*$##g')" 
+WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -o "/.*$" | sed 's/\?/%3F/g')"
 
 
 # download with wget
@@ -134,8 +134,8 @@ if echo "$NOOVERREACH" | grep -q "m"; then urlregex_media="CBMBKUasdjkhksjh34543
 if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
 
 # - grep image, media and document URLs from external sites
-urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -osaE -e "$urlregex_media" -e "${urlregex_any//\"/\'}" | sed -E "$urlmod")"
-urls_single="$(cat "$FILE" | tr '\n' 'ɰ'  | grep -osaE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
+urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "$urlregex_media" -e "${urlregex_any//\"/\'}" | sed -E "$urlmod")"
+urls_single="$(cat "$FILE" | tr '\n' 'ɰ'  | grep -oE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
 
 # - loop over URLs and fetch them with wget
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
@@ -228,7 +228,7 @@ rm ${DOMAIN}.zim >&/dev/null
 
 echo "writing ZIM"
 
-if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -osaE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
+if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -oE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
 	echo "Success in creating ZIM file!"
 	# Maybe clean up or not? Some sites were still throttling me with --wait=0.5, maybe running wget twice is safer
 #	rm -rf ./$DOMAIN
