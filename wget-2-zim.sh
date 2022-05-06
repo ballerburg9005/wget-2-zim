@@ -70,7 +70,7 @@ WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -osa "/.*$" | sed 's/\?/%3F
 
 # download with wget
 
-wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=0.2 --tries=6 \
+wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=0.0 --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
@@ -82,20 +82,81 @@ echo "Wget finished."
 
 find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' $(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g") ' \;
 
-find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) \
-	-exec sh -c 'tmpfile=$(mktemp); cat '"'"'{}'"'"' | tr '"'"'\n'"'"' '"'"'ɰ'"'"' | sed -E '"'"'s/(<[^>]+"[^"]+)\.css\?([^"]*)"([^>]*>)/\1.css"\3/g'"'"'";s/(<[^>]+'"'"'[^'"'"']+)\.css\?([^'"'"']*)'"'"'([^>]*>)/\1.css'"'"'\3/g" | sed -E '"'"'s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'"'"'";s/(<[^>]+'"'"'[^'"'"']+)\?([^'"'"']*'"'"'[^>]*>)/\1%3F\2/g" | sed -E '"'"'s#(["])http[s]*://'"$DOMAIN"'/*(["])#"/"#g;'"'"'"s#(['"'"'])http[s]*://'"$DOMAIN"'/*(['"'"'])#'"'"'/'"'"'#g;" | sed -E '"'"'s#(["])http[s]*://'"$DOMAIN"'/#\1#g'"'"'";s#(['"'"'])http[s]*://'"$DOMAIN"'/#\1#g" | sed -E '"'"'s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="cookie"], [id*="cookie"], [id*="banner"], [class*="banner"], [id*="disclaimer"], [class*="disclaimer"], [id*="consent"], [class*="consent"], [id*="gdpr"], [class*="gdpr"], [id*="privacy"], [class*="privacy"], [id*="popup"], [class*="popup"] { display: none !important; } body { overflow: auto !important; }</style>#g'"'"' |  tr '"'"'ɰ'"'"' '"'"'\n'"'"' > ${tmpfile} ; cat ${tmpfile} > '"'"'{}'"'"' ; echo "the following part is about fetching external content" >&/dev/null; urls_double="$(cat '"'"'{}'"'"' | tr '"'"'\n'"'"' '"'"'ɰ'"'"' | grep -osa "<[^>]*\"https*://[^\"]*\.\(png\|jpe*g\|gif\|webm\|ogg\|mp3\|aac\|wav\|mpe*g\|flac\|fla\|flv\|ac3\|au\|mka\|m.v\|swf\|mp4\|f4v\|ogv\|3g.\|avi\|h26.\|wmv\|mkv\|divx\|ogv\|aif\|svg\|epub\|pdf\|pbd\|xls.\|doc.\|od.\|ppt.\)\"[^>]*>" | sed -E "s#<([^>]*\")(https*://)([^/]*/)([^\"]*)(\".*)#\2\3\4#g")"; urls_single="$(cat '"'"'{}'"'"' | tr '"'"'\n'"'"' '"'"'ɰ'"'"' | grep -osa "<[^>]*'"'"'https*://[^'"'"']*\.\(png\|jpe*g\|gif\|webm\|ogg\|mp3\|aac\|wav\|mpe*g\|flac\|fla\|flv\|ac3\|au\|mka\|m.v\|swf\|mp4\|f4v\|ogv\|3g.\|avi\|h26.\|wmv\|mkv\|divx\|ogv\|aif\|svg\|epub\|pdf\|pbd\|xls.\|doc.\|od.\|ppt.\)'"'"'[^>]*>" | sed -E "s#<([^>]*'"'"')(https*://)([^/]*/)([^'"'"']*)('"'"'.*)#\2\3\4#g")"; for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do wget --timeout=3s --no-check-certificate -e robots=off -p --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" --header="X-Requested-With: XMLHttpRequest" --wait=0.$(( RANDOM % 6 )) --header="Referer: '"$DOMAIN"'" --directory-prefix="'"$DOMAIN"'" "$url"; done; tmpfile=$(mktemp); cat '"'"'{}'"'"' | tr '"'"'\n'"'"' '"'"'ɰ'"'"' | sed -E "s#(<[^>]*\")(https*://)([^/]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd|xls.|doc.|od.|ppt.)(\"[^>]*>)#\1\3\4\5#g" | sed -E "s#(<[^>]*'"'"')(https*://)([^/]*/[^'"'"']*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd|xls.|doc.|od.|ppt.)('"'"'[^>]*>)#\1\3\4\5#g" |  tr '"'"'ɰ'"'"' '"'"'\n'"'"' > ${tmpfile} ; cat ${tmpfile} > '"'"'{}'"'"' ' \;
-			#  replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
-			#  index.html?asdf -> index.html%3Fasdf (literally opens files with question marks in them, rather than making it a parameter)
-			# "http://example.com" -> /
-			# "http://example.com/asdf/asdf" -> asdf/asdf
-			# inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* *disclaimer* *gdpr* *privacy* *popup* ... sort of cheap but better than nothing
-			# external content part: (this is necessary, because a lot of sites use cross-domain content as their own. They embed images of their own from imgur, blogspot, etc.) 
-			# 	grep image, media and document URLs from external sites
-			#	loop over URLs and fetch them with wget
-			#	make those URLs relative in original html file
-			#	TODO could also be used to fetch iframes and external links non-recursively -> sounds quite useful to have as command line option
-			#	TODO only fetches ...pdf" currently but not ...pdf?asdfasdf" -> really desirable?
+iterscript=$(mktemp);
 
+cat <<- "THEREISNOPLACELIKEHOME" > "$iterscript"
+#!/bin/bash
+DOMAIN="$1"
+FILE="$2"
+EXTERNALURLS="$3"
+
+
+### this section fixes links and does anti-cookie CSS
+
+
+# - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
+stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)"([^>]*>)/\1.css"\3/g'
+
+# - index.html?asdf -> index.html%3Fasdf (literally opens files with question marks in them, rather than making it a parameter)
+qmark='s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'
+
+# - "http://example.com" -> /
+# - "http://example.com/asdf/asdf" -> asdf/asdf
+nodomain1='s#(["])http[s]*://'"$DOMAIN"'/*(["])#"/"#g'
+nodomain2='s#(["])http[s]*://'"$DOMAIN"'/#\1#g'
+
+# - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* *disclaimer* *gdpr* *privacy* *popup* ... sort of cheap but better than nothing
+antigdrp='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="cookie"], [id*="cookie"], [id*="banner"], [class*="banner"], [id*="disclaimer"], [class*="disclaimer"], [id*="consent"], [class*="consent"], [id*="gdpr"], [class*="gdpr"], [id*="privacy"], [class*="privacy"], [id*="popup"], [class*="popup"] { display: none !important; } body { overflow: auto !important; }</style>#g'
+
+tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
+	| sed -E "$stylesheet;${stylesheet//\"/\'}" \
+	| sed -E "$qmark;${qmark//\"\'}" \
+	| sed -E "$nodomain1;${nodomain1//\"/\'}" \
+	| sed -E "$nodomain2;${nodomain2//\"/\'}" \
+	| sed -E "$antigdrp" \
+	|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE" 
+rm ${tmpfile}
+
+### this section downloads missing external content that's somehow present in the page (e.g. embedded as images)
+# - TODO could also be used to fetch iframes and external links non-recursively -> sounds quite useful to have as command line option
+# - TODO only fetches ...pdf" currently but not ...pdf?asdfasdf" -> really desirable? -> at this point replaced by %3F ?!
+
+urlregex="(<[^>]*\")(https*://)([^/]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd|xls.|doc.|od.|ppt.)(\"[^>]*>)"
+urlmod="s#<([^>]*\")(https*://)([^/]*/)([^\"]*)(\".*)#\2\3\4#g"
+
+# - grep image, media and document URLs from external sites
+urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -osaE "$urlregex" | sed -E "$urlmod")"
+urls_single="$(cat "$FILE" | tr '\n' 'ɰ'  | grep -osaE "${urlregex//\"/\'}" | sed -E "${urlmod//\"/\'}")"
+
+# - loop over URLs and fetch them with wget
+for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do 
+	if ! grep -qF "$url" $EXTERNALURLS; then
+		echo "DEBUG: $url ( requested by: $FILE )"
+		wget --timeout=3s --no-check-certificate -e robots=off -p \
+			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
+			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
+			--wait=0.$(( RANDOM % 3 )) \
+			--directory-prefix="$DOMAIN" "$url"
+	fi
+	echo "$url" >> $EXTERNALURLS
+done
+
+# - make URLs relative in original html file
+
+tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
+		| sed -E "s#$urlregex#\1\3\4\5#g;s#${urlregex//\"/\'}#\1\3\4\5#g" \
+		|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE""'"
+rm ${tmpfile}
+
+# TODO ZIM files can't have ../ in URLS ... not sure if src="thisdirectory.jpg" even works. This sucks. Maybe if ./ is found we can insert the cwd and if (../) is found the cwd - n times [^/]*/ ...
+
+
+THEREISNOPLACELIKEHOME
+
+chmod 755 "$iterscript"
+EXTERNALURLS=$(mktemp);
+find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" \;
+rm $EXTERNALURLS
 
 # various shenanegans to deal with media and large files
 
@@ -154,7 +215,7 @@ rm ${DOMAIN}.zim >&/dev/null
 
 echo "writing ZIM"
 
-if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(awk '/<title>/,/<\/title\>/' $DOMAIN/index.html | tr '\n' ' ' | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g")" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
+if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -osaE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
 	echo "Success in creating ZIM file!"
 	# Maybe clean up or not? Some sites were still throttling me with --wait=0.5, maybe running wget twice is safer
 #	rm -rf ./$DOMAIN
