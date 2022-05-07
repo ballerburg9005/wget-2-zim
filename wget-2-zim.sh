@@ -28,7 +28,7 @@ if [[ " --help -help -h " =~ " $1 " || "$1" == "" ]]; then
 	echo "	--include-any			Download any file type."
 	echo "	--no-overreach-media		Don't overreach by downloading media files from external domains (might affect images directly visible on the page)."
 	echo "	--overreach-any			Overreach by downloading any sort of src= and href= content from external domains."
-	echo "	--turbo				Disable all download delays (will probably result in half the files missing due to throttling with false 404s or ban)"
+	echo "	--turbo				Disable all download delays (will probably result in half the files missing due to throttling with false 404s)"
 
 	exit -1
 fi
