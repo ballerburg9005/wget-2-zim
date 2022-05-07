@@ -107,42 +107,20 @@ FILE="$2"
 EXTERNALURLS="$3"
 WGETREJECT="$4"
 NOOVERREACH="$5"
+bogus_regex="unmatchable-CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"
 
 
-### this section fixes links and does anti-cookie CSS
-
-# - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
-stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)("[^>]*>)/\1.css\3/g'
-
-# - "http://example.com/asdf/asdf" -> /asdf/asdf
-nodomain='s#(["])http[s]*://'"$DOMAIN"'/*([^"]*")#\1\2//#g'
-
-# this useless tag can cause a segfault in zimwriterfs
-zimwriterfsbug='s#<meta[^>]*http-equiv="refresh"[^>]*>#/#g'
-
-# - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* etc sort of cheap but better than nothing
-antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"]'
-for word in cookie banner disclaimer consent gdpr privacy popup adsby adsense advert sponsored adcontainer  -ads- -ad- ads_ ads- _ads leaderboard- ad-wrapper adholder adslot adspace adspot adv- boxad contentad footer-ad header-ad; do 
-	antishit="$antishit, [id*='$word'], [class*='$word']"
-done
-antishit="$antishit { display: none !important; } body { overflow: auto !important; }</style>#g"
-
-tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
-	| sed -E "$stylesheet;${stylesheet//\"/\'}" \
-	| sed -E "$nodomain;${nodomain//\"/\'}" \
-	| sed -E "$zimwriterfsbug;${zimwriterfsbug//\"/\'}" \
-	| sed -E "$antishit" \
-	|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE" 
-rm ${tmpfile}
-
-### this section downloads missing external content that's somehow present in the page (e.g. embedded as images)
+### first we download missing external content that's somehow present in the page (e.g. embedded as images)
+### then we fixes links and do some anti-cookie CSS
 
 urlregex_media="(<[^>]*\")(https*:/)(/[^/\"]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|mp3|aac|wav|mpe*g|flac|fla|flv|ac3|au|mka|m.v|swf|mp4|f4v|ogv|3g.|avi|h26.|wmv|mkv|divx|ogv|aif|svg|epub|pdf|pbd)(\?[^\"]*)*(\"[^>]*>)"
 urlregex_any="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^\"]*)(\"[^>]*>)"
+urlregx_idx1="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^/\"]*)(\"[^>]*>)"
+urlregx_idx2="(<[^>]*)(href=\"|src=\")([^\"]*)/(\"[^>]*>)"
 urlmod="s#<[^>]*\"(https*://[^\"]*)\".*#\1#g"
 
-if echo "$NOOVERREACH" | grep -q "m"; then urlregex_media="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
-if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="CBMBKUasdjkhksjh34543jkl54598278933k(1)(2)(3)(4)(5)(6)(7)(8)(9)"; fi
+if echo "$NOOVERREACH" | grep -q "m"; then urlregex_media="$bogus_regex"; fi
+if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="$bogus_regex"; urlregx_idx1="$bogus_regex"; urlregx_idx2="$bogus_regex"; fi
 
 # - grep image, media and document URLs from external sites
 urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "$urlregex_media" -e "$urlregex_any" | sed -E "$urlmod")"
@@ -163,15 +141,41 @@ for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
 	echo "$url" >> $EXTERNALURLS
 done
 
-# remove https:/ in final command to make relative URLs -> /asdf
+# - "http://example.com/asdf/asdf" -> /asdf/asdf (same domain)
+nodomain='s#(["])http[s]*://'"$DOMAIN"'/*([^"]*")#\1\2//#g'
+
+# - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
+stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)("[^>]*>)/\1.css\3/g'
 
 # - index.html?asdf -> index.html%3Fasdf  - files won't load otherwise
 qmark='s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'
 
+# this useless(?) tag can cause a segfault in zimwriterfs
+zimwriterfsbug='s#<meta[^>]*http-equiv="refresh"[^>]*>#/#g'
+
+# - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* etc sort of cheap but better than nothing
+antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"]'
+for word in cookie banner disclaimer consent gdpr privacy popup adsby adsense advert sponsored adcontainer  -ads- -ad- ads_ ads- _ads leaderboard- ad-wrapper adholder adslot adspace adspot adv- boxad contentad footer-ad header-ad; do 
+	antishit="$antishit, [id*='$word'], [class*='$word']"
+done
+antishit="$antishit { display: none !important; } body { overflow: auto !important; }</style>#g"
+
+# final command removes http:/ with urlregex_ to make relative URLs -> /asdf
+
+# Kiwix does not understand autoloading index.html, this hack produces the following issues: 1. the "l" could be missing in .html, 2. http://example.com/mydir will not be interepreted as being a directory (only this really makes sense due to erratic wget behavior)
+# urlregx_idx1 : http://external.com -> http://external.com/index.html
+# urlregx_idx2 : /mydir/ -> /mydir/index.html
+ 
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
+		| sed -E "s#$urlregx_idx1#\1\2\3\4/index.html\5#g;s#${urlregx_idx1//\"/\'}#\1\2\3\4/index.html\5#g" \
+		| sed -E "$nodomain;${nodomain//\"/\'}" \
 		| sed -E "s#$urlregex_media#\1\3\4\5\6#g;s#${urlregex_media//\"/\'}#\1\3\4\5\6#g" \
 		| sed -E "s#$urlregex_any#\1\2\4\5#g;s#${urlregex_any//\"/\'}#\1\2\4\5#g" \
+		| sed -E "s#$urlregx_idx2#\1\2\3/index.html\4#g;s#${urlregx_idx2//\"/\'}#\1\2\3/index.html\4#g" \
+		| sed -E "$stylesheet;${stylesheet//\"/\'}" \
 		| sed -E "$qmark;${qmark//\"\'}" \
+		| sed -E "$zimwriterfsbug;${zimwriterfsbug//\"/\'}" \
+		| sed -E "$antishit" \
 		|  tr 'ɰ' '\n' > ${tmpfile} ; cat ${tmpfile} > "$FILE"
 rm ${tmpfile}
 
@@ -180,6 +184,7 @@ THEREISNOPLACELIKEHOME
 
 chmod 755 $iterscript
 EXTERNALURLS=$(mktemp)
+echo -e "http://$DOMAIN\nhttps://$DOMAIN\nhttp://$DOMAIN/\nhttps://$DOMAIN/\n" >> $EXTERNALURLS
 find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
@@ -221,8 +226,12 @@ if [[ "${OPTS[video-max]}" != "" ]]; then 	find $DOMAIN -type f \( \
 fi
 }
 
+# I made those functions to easily switch off for debugging
 
 thewget
+
+rsync -ra $DOMAIN/ ${DOMAIN}_debug/
+
 postwget
 largedelete
 
