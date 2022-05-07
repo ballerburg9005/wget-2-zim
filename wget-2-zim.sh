@@ -229,9 +229,7 @@ fi
 # I made those functions to easily switch off for debugging
 
 thewget
-
 rsync -ra $DOMAIN/ ${DOMAIN}_debug/
-
 postwget
 largedelete
 
