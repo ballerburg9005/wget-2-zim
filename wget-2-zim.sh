@@ -99,7 +99,7 @@ find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"'
 iterscript=$(mktemp);
 
 
-# TODO the new files from overreach need to be fixed sa well ... so a second pass with this script is required - needs restructuring
+# TODO - fix do real nodomain on all URLS with domain before anything else
 cat <<- "THEREISNOPLACELIKEHOME" > "$iterscript"
 #!/bin/bash
 DOMAIN="$1"
@@ -151,7 +151,7 @@ stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)("[^>]*>)/\1.css\3/g'
 qmark='s/(<[^>]+"[^"]+)\?([^"]*"[^>]*>)/\1%3F\2/g'
 
 # this useless(?) tag can cause a segfault in zimwriterfs
-zimwriterfsbug='s#<meta[^>]*http-equiv="refresh"[^>]*>#/#g'
+zimwriterfsbug='s#<meta[^>]*http-equiv="refresh"[^>]*>##g'
 
 # - inject css to forcefully hide all elements where class or id is *cookie* *banner* *consent* etc sort of cheap but better than nothing
 antishit='s#<[[:space:]]*head[[:space:]]*>#<head><style type="text/css">[class*="__useless__"]'
@@ -162,7 +162,7 @@ antishit="$antishit { display: none !important; } body { overflow: auto !importa
 
 # final command removes http:/ with urlregex_ to make relative URLs -> /asdf
 
-# Kiwix does not understand autoloading index.html, this hack produces the following issues: 1. the "l" could be missing in .html, 2. http://example.com/mydir will not be interepreted as being a directory (only this really makes sense due to erratic wget behavior)
+# Kiwix does not understand autoloading index.html, this hack produces the following issues: 1. the "l" could be missing in .html, 2. http://example.com/mydir will not be interepreted as being a directory,, 3. it probably damages external links (only this really makes sense due to erratic wget behavior)
 # urlregx_idx1 : http://external.com -> http://external.com/index.html
 # urlregx_idx2 : /mydir/ -> /mydir/index.html
  
@@ -186,6 +186,7 @@ chmod 755 $iterscript
 EXTERNALURLS=$(mktemp)
 echo -e "http://$DOMAIN\nhttps://$DOMAIN\nhttp://$DOMAIN/\nhttps://$DOMAIN/\n" >> $EXTERNALURLS
 find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
+find $DOMAIN/wget-2-zim-overreach/ -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "ma" \;
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
 
