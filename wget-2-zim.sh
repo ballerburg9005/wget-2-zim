@@ -5,7 +5,7 @@
 
 # parse command line options and print info
 
-WGETREJECT='*.img,*.md*,*.dsk,*.nrg,*.iso,*.cue,*.pk*,*.pak*,*.daa,*.ass,*.ipa,*.ace,*.toast,*.vcd,*.vol,*.bak,*.cab,*.tmp'
+WGETREJECT='*.img,*.md*,*.dsk,*.nrg,*.iso,*.cue,*.pk*,*.pk0,*.pk1,*.pk2,*.pk3,*.pk4,*.pak*,*.daa,*.ass,*.ipa,*.ace,*.toast,*.vcd,*.vol,*.bak,*.cab,*.tmp'
 WGETREJECT_ARCHIVE=',*.lz,*.gz,*.zip,*.rar,*.7z,*.tar*,*.xz,*.bz2'
 WGETREJECT_PROGRAM=',*.exe,*.deb,*.rpm,*.dmg,*.bin,*.msi,*.apk,*.tar.*z'
 
@@ -99,7 +99,6 @@ find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"'
 iterscript=$(mktemp);
 
 
-# TODO - fix do real nodomain on all URLS with domain before anything else
 cat <<- "THEREISNOPLACELIKEHOME" > "$iterscript"
 #!/bin/bash
 DOMAIN="$1"
@@ -129,7 +128,9 @@ urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'
 # - loop over URLs and fetch them with wget
 
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
-	if ! {     grep -qFox "$url" $EXTERNALURLS \
+	# don't wget stuff from 1. same domain, 2. if already downloaded, 3. if having a file extension that we otherwise would exlude in recursive wget
+	if ! {  echo "$url" | grep -qE  "https*://(www\.)*${DOMAIN//./\.}" \
+		|| grep -qFox "$url" $EXTERNALURLS \
 		|| echo "$WGETREJECT" | grep -Foq "$(echo "$url" | sed -E 's#(.*)(\.[^\?\.]*)(\?.*)*$#\2#g')" ; }; then
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off --tries=6 -p \
@@ -141,7 +142,7 @@ for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
 	echo "$url" >> $EXTERNALURLS
 done
 
-# - "http://example.com/asdf/asdf" -> /asdf/asdf (same domain)
+# - "http://example.com/asdf/asdf" -> /asdf/asdf or http://example.com -> / (same domain)
 nodomain='s#(["])http[s]*://'"$DOMAIN"'/*([^"]*")#\1\2//#g'
 
 # - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
@@ -184,7 +185,6 @@ THEREISNOPLACELIKEHOME
 
 chmod 755 $iterscript
 EXTERNALURLS=$(mktemp)
-echo -e "http://$DOMAIN\nhttps://$DOMAIN\nhttp://$DOMAIN/\nhttps://$DOMAIN/\n" >> $EXTERNALURLS
 find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
 find $DOMAIN/wget-2-zim-overreach/ -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "ma" \;
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
