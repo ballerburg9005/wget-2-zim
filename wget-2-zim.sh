@@ -94,6 +94,8 @@ echo "Wget finished."
 # various URL repairs & anti GDRP stuff, plus manual wget download of images, documents, media files that are linked to external domains
 
 function postwget {
+
+echo "renaming .css?xxx files to .css"
 find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g")" ' \;
 
 iterscript=$(mktemp);
@@ -116,22 +118,22 @@ urlregex_media="(<[^>]*\")(https*:/)(/[^/\"]*/[^\"]*\.)(png|jpe*g|gif|webm|ogg|m
 urlregex_any="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^\"]*)(\"[^>]*>)"
 urlregx_idx1="(<[^>]*)(href=\"|src=\")(https*:/)(/[^\"]*\.[^/\"]*)(\"[^>]*>)"
 urlregx_idx2="(<[^>]*)(href=\"|src=\")([^\"]*)/(\"[^>]*>)"
-urlmod="s#<[^>]*\"(https*://[^\"]*)\".*#\1#g"
+urlmod="s#<[^>]*\"(https*://[^\"[:space:]]*)\".*#\1#g"
 
 if echo "$NOOVERREACH" | grep -q "m"; then urlregex_media="$bogus_regex"; fi
-if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="$bogus_regex"; urlregx_idx1="$bogus_regex"; urlregx_idx2="$bogus_regex"; fi
+if echo "$NOOVERREACH" | grep -q "a"; then urlregex_any="$bogus_regex"; urlregx_idx1="$bogus_regex"; fi
 
 # - grep image, media and document URLs from external sites
-urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "$urlregex_media" -e "$urlregex_any" | sed -E "$urlmod")"
-urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
+urls_double="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oaE -e "$urlregex_media" -e "$urlregex_any" | sed -E "$urlmod")"
+urls_single="$(cat "$FILE" | tr '\n' 'ɰ' | grep -oaE -e "${urlregex_media//\"/\'}" -e "${urlregex_any//\"/\'}" | sed -E "${urlmod//\"/\'}")"
 
 # - loop over URLs and fetch them with wget
 
 for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
 	# don't wget stuff from 1. same domain, 2. if already downloaded, 3. if having a file extension that we otherwise would exlude in recursive wget
 	if ! {  echo "$url" | grep -qE  "https*://(www\.)*${DOMAIN//./\.}" \
-		|| grep -qFox "$url" $EXTERNALURLS \
-		|| echo "$WGETREJECT" | grep -Foq "$(echo "$url" | sed -E 's#(.*)(\.[^\?\.]*)(\?.*)*$#\2#g')" ; }; then
+		|| grep -qFoax "$url" $EXTERNALURLS \
+		|| echo "$WGETREJECT" | grep -Foaq "$(echo "$url" | sed -E 's#(.*)(\.[^\?\.]*)(\?.*)*$#\2#g')" ; }; then
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off --tries=6 -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
@@ -183,19 +185,23 @@ rm ${tmpfile}
 
 THEREISNOPLACELIKEHOME
 
+echo "iterating over .html files to fix links, css and stuff"
 chmod 755 $iterscript
 EXTERNALURLS=$(mktemp)
 find $DOMAIN -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "$NOOVERREACH" -not -path "./$DOMAIN/wget-2-zim-overreach/*" \;
 find $DOMAIN/wget-2-zim-overreach/ -type f \( -name '*.htm*' -or -name '*.php*' \) -exec "$iterscript" "$DOMAIN" '{}' "$EXTERNALURLS" "$WGETREJECT" "ma" \;
 mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
-
+echo "iteration finished"
 }
 
 
 # various shenanegans to deal with media and large files
 
 function largedelete {
+
+echo "deleting files deemed too large"
+
 if [[ "${OPTS[any-max]}" != "" ]]; then find $DOMAIN -type f -size "+${OPTS[any-max]}M" -delete; fi
 
 if [[ "${OPTS[not-media-max]}" != "" ]]; then 	find $DOMAIN -type f -not \( \
@@ -225,12 +231,14 @@ if [[ "${OPTS[video-max]}" != "" ]]; then 	find $DOMAIN -type f \( \
 				-name '*\.3g*' -or -name '*\.avi' -or -name '*\.flv*' -or -name '*\.h26*' -or -name '*\.m*v' -or -name '*\.mp*g' -or -name '*\.swf' -or -name '*\.wmv' -or -name '*\.mkv' -or -name '*\.mp4' -or -name '*\.divx' -or -name '*\.f4v' -or -name '*\.ogv' -or -name '*\.webm' \
 									\) -size "+${OPTS[video-max]}M" -delete;
 fi
+
+echo "deleting files finished"
 }
 
 # I made those functions to easily switch off for debugging
 
 thewget
-rsync -ra $DOMAIN/ ${DOMAIN}_debug/
+#rsync -ra $DOMAIN/ ${DOMAIN}_debug/
 postwget
 largedelete
 
@@ -258,7 +266,7 @@ rm ${DOMAIN}.zim >&/dev/null
 
 echo "writing ZIM"
 
-if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -oE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
+if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -oaE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
 	echo "Success in creating ZIM file!"
 #	rm -rf ./$DOMAIN
 else
