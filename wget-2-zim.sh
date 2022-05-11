@@ -95,9 +95,6 @@ echo "Wget finished."
 
 function postwget {
 
-echo "renaming .css?xxx files to .css"
-find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g")" ' \;
-
 iterscript=$(mktemp);
 
 
@@ -194,6 +191,9 @@ mv $DOMAIN/wget-2-zim-overreach/* $DOMAIN/
 rm $EXTERNALURLS $iterscript
 echo "iteration finished"
 }
+
+echo "renaming .css?xxx files to .css"
+find $DOMAIN -name '*\.css\?*' -exec sh -c 'mv '"'"'{}'"'"' "$(echo '"'"'{}'"'"' | sed -E "s#\.css\?.*#.css#g")" ' \;
 
 
 # various shenanegans to deal with media and large files
