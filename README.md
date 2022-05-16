@@ -40,7 +40,10 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 
 # running under Windows
 
-[Please do not run Windows](https://ballerburg.us.to/about-your-obligation-to-boycott-windows-11/). However if you really must, then there are basically two easy methods to do it: 1. Set up [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy), 2. Use [MSYS2](https://www.msys2.org/) (even easier and faster). 
+[Please do not run Windows](https://ballerburg.us.to/about-your-obligation-to-boycott-windows-11/). However if you really must, then there are basically two easy methods to do it: 
+
+1. Set up [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy), 
+2. Use [MSYS2](https://www.msys2.org/) (even easier and faster). 
 
 ## MSYS2 
 
