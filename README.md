@@ -55,4 +55,4 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 6. git clone https://github.com/ballerburg9005/wget-2-zim
 7. ~/wget-2-zim/wget-2-zim.sh https://example.com
 
-*I have not actually tested this, but it is really that simple.*
+*I have not actually tested this, but it is really that simple. If pacman complains when downloading try pacman -Sy first.*
