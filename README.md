@@ -42,8 +42,8 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 
 [Please do not run Windows](https://ballerburg.us.to/about-your-obligation-to-boycott-windows-11/). However if you really must, then there are basically two easy methods to do it: 
 
-1. [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy) - integrated Linux environment from MS, more similar to a VM
-2. [MSYS2](https://www.msys2.org/) (even easier and faster) - Linux programs and tools compiled for Windows to create a Linux-alike environment
+1. [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy) - integrated Linux environment from MS, more similar to a VM, more meat
+2. [MSYS2](https://www.msys2.org/) (even easier and faster) - tons of Linux programs and tools compiled for Windows to create a Linux-alike environment for devs
 
 ## MSYS2 
 
