@@ -9,7 +9,7 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 # how to use 
 
-**Install: wget imagemagick zim-tools**
+**Install: wget imagemagick zim-tools (git)**
 
 > ./wget-2-zim.sh https://ballerburg.us.to
 
@@ -38,6 +38,16 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 --turbo				Disable all download delays (will probably result in half the files missing due to throttling with false 404s)
 ```
 
-# future notes
+# running under Windows
 
-I will probably add docker later
+[Please do not run Windows](https://ballerburg.us.to/about-your-obligation-to-boycott-windows-11/). However if you really must, then there are basically two easy methods to do it: 1. Set up [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy), 2. Use [MSYS2](https://www.msys2.org/) (even easier and faster). 
+
+## MSYS2 
+
+1. Download and click though the [installer](https://www.msys2.org/) 
+2. Open MSYS2 MINGW64 (drops you into Linux shell)
+3. pacman -S wget imagemagick git
+4. git clone https://github.com/openzim/zim-tools
+5. cd zim-tools; meson . build; ninja -C build; ninja -C build install; cd ~/
+6. git clone https://github.com/ballerburg9005/wget-2-zim
+7. ~/wget-2-zim/wget-2-zim.sh https://example.com
