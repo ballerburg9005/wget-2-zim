@@ -147,17 +147,23 @@ done
 # - "http://example.com/asdf/asdf" -> /asdf/asdf or http://example.com -> / (same domain)
 nodomain='s#(["])http[s]*://'"$DOMAIN"'/*([^"]*")#\1\2//#g'
 
+# - this seems to be bullshit, does not solve the problem
 # - "../../index.html" -> /the/path/index.html - at this point, kiwix does not understand relative paths ... it somehow only worked in test pages but not real-world websites
-absurl1="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"		# for ../../../../
-absurl2="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"				# for ../../../
-absurl3="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"					# for ../../
-absurl4="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"							# for ../
-absurl5="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g" | sed -E "s#^\$#/#g" )"									# for ./
-norelative1="(<[^>]*)(href=\"|src=\")(\.\./\.\./\.\./\.\./)([^\"]*)(\"[^>]*>)"
-norelative2="(<[^>]*)(href=\"|src=\")(\.\./\.\./\.\./)([^\"]*)(\"[^>]*>)"
-norelative3="(<[^>]*)(href=\"|src=\")(\.\./\.\./)([^\"]*)(\"[^>]*>)"
-norelative4="(<[^>]*)(href=\"|src=\")(\.\./)([^\"]*)(\"[^>]*>)"
-norelative5="(<[^>]*)(href=\"|src=\")(\./){1,10}([^\"]*)(\"[^>]*>)"
+#absurl1="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"		# for ../../../../
+#absurl2="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"			# for ../../../
+#absurl3="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"					# for ../../
+#absurl4="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"							# for ../
+#absurl5="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g" | sed -E "s#^\$#/#g" )"									# for ./
+#norelative1="(<[^>]*)(href=\"|src=\")(\.\./\.\./\.\./\.\./)([^\"]*)(\"[^>]*>)"
+#norelative2="(<[^>]*)(href=\"|src=\")(\.\./\.\./\.\./)([^\"]*)(\"[^>]*>)"
+#norelative3="(<[^>]*)(href=\"|src=\")(\.\./\.\./)([^\"]*)(\"[^>]*>)"
+#norelative4="(<[^>]*)(href=\"|src=\")(\.\./)([^\"]*)(\"[^>]*>)"
+#norelative5="(<[^>]*)(href=\"|src=\")(\./){1,10}([^\"]*)(\"[^>]*>)"
+#		| sed -E "s#$norelative1#\1\2${absurl1}\4\5#g;s#${norelative1//\"/\'}#\1\2${absurl1}\4\5#g" \
+#		| sed -E "s#$norelative2#\1\2${absurl2}\4\5#g;s#${norelative2//\"/\'}#\1\2${absurl2}\4\5#g" \
+#		| sed -E "s#$norelative3#\1\2${absurl3}\4\5#g;s#${norelative3//\"/\'}#\1\2${absurl3}\4\5#g" \
+#		| sed -E "s#$norelative4#\1\2${absurl4}\4\5#g;s#${norelative4//\"/\'}#\1\2${absurl4}\4\5#g" \
+#		| sed -E "s#$norelative5#\1\2${absurl5}\4\5#g;s#${norelative5//\"/\'}#\1\2${absurl5}\4\5#g" \
 
 # - replace all ".css?asdfasdfsdf" with ".css" - stylesheets must not have any other ending
 stylesheet='s/(<[^>]+"[^"]+)\.css\?([^"]*)("[^>]*>)/\1.css\3/g'
@@ -184,11 +190,6 @@ antishit="$antishit { display: none !important; } body { overflow: auto !importa
 tmpfile=$(mktemp); cat "$FILE" | tr '\n' 'ɰ' \
 		| sed -E "s#$urlregx_idx1#\1\2\3\4/index.html\5#g;s#${urlregx_idx1//\"/\'}#\1\2\3\4/index.html\5#g" \
 		| sed -E "$nodomain;${nodomain//\"/\'}" \
-		| sed -E "s#$norelative1#\1\2${absurl1}\4\5#g;s#${norelative1//\"/\'}#\1\2${absurl1}\4\5#g" \
-		| sed -E "s#$norelative2#\1\2${absurl2}\4\5#g;s#${norelative2//\"/\'}#\1\2${absurl2}\4\5#g" \
-		| sed -E "s#$norelative3#\1\2${absurl3}\4\5#g;s#${norelative3//\"/\'}#\1\2${absurl3}\4\5#g" \
-		| sed -E "s#$norelative4#\1\2${absurl4}\4\5#g;s#${norelative4//\"/\'}#\1\2${absurl4}\4\5#g" \
-		| sed -E "s#$norelative5#\1\2${absurl5}\4\5#g;s#${norelative5//\"/\'}#\1\2${absurl5}\4\5#g" \
 		| sed -E "s#$urlregex_media#\1\3\4\5\6#g;s#${urlregex_media//\"/\'}#\1\3\4\5\6#g" \
 		| sed -E "s#$urlregex_any#\1\2\4\5#g;s#${urlregex_any//\"/\'}#\1\2\4\5#g" \
 		| sed -E "s#$urlregx_idx2#\1\2\3/index.html\4#g;s#${urlregx_idx2//\"/\'}#\1\2\3/index.html\4#g" \
