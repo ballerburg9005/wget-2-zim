@@ -147,7 +147,7 @@ done
 # - "http://example.com/asdf/asdf" -> /asdf/asdf or http://example.com -> / (same domain)
 nodomain='s#(["])http[s]*://'"$DOMAIN"'/*([^"]*")#\1\2//#g'
 
-# - this seems to be bullshit, does not solve the problem
+# - this seems to be bullshit, does not solve the problem with some wordpress installations
 # - "../../index.html" -> /the/path/index.html - at this point, kiwix does not understand relative paths ... it somehow only worked in test pages but not real-world websites
 #absurl1="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"		# for ../../../../
 #absurl2="$(echo "$FILE" | sed -E "s#^[^/]*##g;s#/[^/]*\$#/#g;s#[^/]*/\$##g;s#[^/]*/\$##g;s#[^/]*/\$##g" | sed -E "s#^\$#/#g" )"			# for ../../../
