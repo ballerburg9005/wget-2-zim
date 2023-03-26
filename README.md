@@ -9,7 +9,7 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 # how to use 
 
-**Install: wget imagemagick zim-tools (git)**
+**Install those dependencies: wget, imagemagick, zim-tools (git)**
 
 > ./wget-2-zim.sh https://ballerburg.us.to
 
@@ -56,3 +56,7 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 7. ~/wget-2-zim/wget-2-zim.sh https://example.com
 
 *I have not actually tested this, but it is really that simple. If pacman complains when downloading try pacman -Sy first.*
+
+# troubleshooting for beginners
+
+If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. In order to fix this, follow the steps 3-7 outlined in the "MSYS2" section. However, you have to understand that the first step (#3) will only work on Archlinux, since every Linux distribution uses a different package manager. On Debian or Ubuntu for example, you would use "apt install" instead of "pacman -S" to install those packages.
