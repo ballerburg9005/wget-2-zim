@@ -11,7 +11,7 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 **First install those dependencies: wget, imagemagick, zim-tools (git version)**
 
-*(Beginners: See "MSYS2" section for possible command chain and read "troubleshooting" section.)*
+*(Beginners: read the "troubleshooting" section for possible command chain.)*
 
 Then run this command:
 
