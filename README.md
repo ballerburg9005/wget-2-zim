@@ -9,7 +9,11 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 # how to use 
 
-**Install those dependencies: wget, imagemagick, zim-tools (git)**
+**First install those dependencies: wget, imagemagick, zim-tools (git version)**
+
+*(Beginners: See "MSYS2" section for possible command chain and read "troubleshooting" section.)*
+
+Then run this command:
 
 > ./wget-2-zim.sh https://ballerburg.us.to
 
