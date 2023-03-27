@@ -15,7 +15,7 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 Then run this command:
 
-> ./wget-2-zim.sh https://ballerburg.us.to
+> ./wget-2-zim.sh https://example.org
 
 Now just open the ZIM file in Kiwix.
 
@@ -57,7 +57,7 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 4. git clone https://github.com/openzim/zim-tools
 5. cd zim-tools; meson . build; ninja -C build; ninja -C build install; cd ~/
 6. git clone https://github.com/ballerburg9005/wget-2-zim
-7. ~/wget-2-zim/wget-2-zim.sh https://example.com
+7. ~/wget-2-zim/wget-2-zim.sh https://example.org
 
 *I have not actually tested this, but it is really that simple. If pacman complains when downloading try pacman -Sy first.*
 
