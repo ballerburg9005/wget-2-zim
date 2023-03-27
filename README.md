@@ -66,3 +66,5 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. 
 
 If you look at the steps 3-7 in "MSYS2" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#3) will only work on Archlinux, since "pacman" is a package manager, and every Linux distribution might use a different one instead. On Debian or Ubuntu for example, you would use "apt install" instead of "pacman -S" to install those 3 packages. Thus please adapt step #3 appropriately.
+
+Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and follow steps 4-6 from the "MSYS" section.
