@@ -63,4 +63,6 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 
 # troubleshooting for beginners
 
-If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. In order to fix this, follow the steps 3-7 outlined in the "MSYS2" section. However, you have to understand that the first step (#3) will only work on Archlinux, since every Linux distribution might use a different package manager than the other. On Debian or Ubuntu for example, you would use "apt install" instead of "pacman -S" to install those 3 packages. Thus please adapt step #3 appropriately.
+If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. 
+
+If you look at the steps 3-7 in "MSYS2" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#3) will only work on Archlinux, since every Linux distribution might use a different package manager than the other. On Debian or Ubuntu for example, you would use "apt install" instead of "pacman -S" to install those 3 packages. Thus please adapt step #3 appropriately.
