@@ -84,7 +84,7 @@ function thewget {
 wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=$WGGETWAIT --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
-	--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" --header='Accept-Language: en' \
+	--header="X-Requested-With: XMLHttpRequest" --referer "$DOMAIN" --header='Accept-Language: en' \
 	$URL
 
 echo "Wget finished."
@@ -137,7 +137,7 @@ for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
 		echo "DEBUG: $url ( requested by: $FILE )"
 		wget --timeout=3s --no-check-certificate -e robots=off --tries=6 -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
-			--header="X-Requested-With: XMLHttpRequest" --header="Referer: $DOMAIN" \
+			--header="X-Requested-With: XMLHttpRequest" --referer: "$DOMAIN" \
 			--reject "$WGETREJECT" \
 			--directory-prefix="$DOMAIN/wget-2-zim-overreach" "$url"
 	fi
