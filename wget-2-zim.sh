@@ -277,7 +277,9 @@ fi
 # choose index page (welcome)
 
 if [ ! -f "$DOMAIN/$WELCOME" ]; then
-	WELCOME="$(command ls -w 1 $DOMAIN/index*.{htm*,php*} $DOMAIN/*.{htm*,php*} | cat - <(echo "$DOMAIN/index.html") | head -n 1 | sed "s#^[^/]*/##g")"
+	LISTHTML="$(find "$DOMAIN" -type f -maxdepth 1 \( -name 'index.htm*' -or -name 'index.php*' \) -printf '%f\n' 2>/dev/null | sort)"
+ 	LISTHTML="$LISTHTML"$'\n'"$(find "$DOMAIN" -type f -maxdepth 1 \( -name '*.htm*' -or -name '*.php*' \) -printf '%f\n' 2>/dev/null | sort)"
+	WELCOME="$(echo "$LISTHTML" | sed '/^$/d' | cat - <(echo "$DOMAIN/index.html") | head -n 1 | sed "s#^[^/]*/##g")"
 fi
 
 
