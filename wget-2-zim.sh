@@ -84,7 +84,7 @@ function thewget {
 wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=$WGGETWAIT --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
-	--header="X-Requested-With: XMLHttpRequest" --referer "$DOMAIN" --header='Accept-Language: en' \
+	--header="X-Requested-With: XMLHttpRequest" --referer="$DOMAIN" --header='Accept-Language: en' \
 	$URL
 
 echo "Wget finished."
