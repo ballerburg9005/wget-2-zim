@@ -72,4 +72,4 @@ Another problem that might happen is, that zimwriterfs complains about "--illust
 # known issues
 
 * The website can throttle you if you download too much too fast, rendering your archive incomplete. You will notice this when you suddenly only get 404 errors, or when it just hangs a lot. There are already (very necessary) delays inside the script in various places to prevent this. If you still experience throttling, it is probably due to total download volume per 24 hours. You could try making the delays even bigger, or you could try pausing the script with CTRL + Z in between, and continue it the next day or some time later with "fg" bit by bit.
-* Due to cookie banner removing CSS, some sites might not scroll or only show a blank box that you can't click away. The solution is to modify or blank out "antishit" inside the script.
+* Due to cookie banner removing CSS, some sites might not scroll or only show a blank box that you can't click away. The solution is to modify or blank out "antishit" inside the script. This will however result in cookie banners showing on every page, and also ads if present.
