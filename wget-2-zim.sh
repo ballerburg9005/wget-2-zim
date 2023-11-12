@@ -288,8 +288,9 @@ fi
 rm ${DOMAIN}.zim >&/dev/null
 
 echo "writing ZIM"
+DESCRIPTION="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -oaE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" 
 
-if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description="$(cat $DOMAIN/index.html | tr '\n' ' ' | grep -oaE "<title>[^>]*</title>" | sed "s/<[^>]*>//g;s/[[:space:]]\+/\ /g;s/^[[:space:]]*//g;s/[[:space:]]*$//g" | cat - <(echo "no description") | head -n 1 )" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" ./$DOMAIN $DOMAIN.zim; then
+if zimwriterfs --welcome="$WELCOME" --illustration=zim_favicon.png --language=eng --title="$DOMAIN" --description "$DESCRIPTION" --longDescription="$DESCRIPTION (created by wget-2-zim)" --creator="https://github.com/ballerburg9005/wget-2-zim" --publisher "wget-2-zim, a simple easy to use script that just works" --name "$DOMAIN" --source="$DOMAIN" --scraper "wget-2-zim `date` , `wget --version |head -n 1`" ./$DOMAIN $DOMAIN.zim; then
 	echo "Success in creating ZIM file!"
 #	rm -rf ./$DOMAIN
 else
