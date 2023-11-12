@@ -68,3 +68,8 @@ If you get the error "convert: command not found" or "zimwriterfs: command not f
 If you look at the steps 3-7 in "MSYS2" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#3) will only work on Archlinux, since "pacman" is a specific package manager, and it differs between Linux distributions. On Debian or Ubuntu for example, you would use "apt install" instead of "pacman -S" to install those 3 packages. Thus please adapt step #3 appropriately.
 
 Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and follow steps 4-6 from the "MSYS" section.
+
+# known issues
+
+* The website can throttle you if you download too much too fast, rendering your archive incomplete. You will notice this when you suddenly only get 404 errors, or when it just hangs a lot. There are already (very necessary) delays inside the script in various places to prevent this. If you still experience throttling, it is probably due to total download volume per 24 hours. You could try making the delays even bigger, or you could try pausing the script with CTRL + Z in between, and continue it the next day or some time later with "fg" bit by bit.
+* Due to cookie banner removing CSS, some sites might not scroll or only show a blank box that you can't click away. The solution is to modify or blank out "antishit" inside the script. This will however result in cookie banners showing on every page, and also ads if present.
