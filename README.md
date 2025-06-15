@@ -57,6 +57,7 @@ Then follow the steps in section "running on Ubuntu".
 
 # running on Ubuntu
 
+0. sudo bash
 1. apt update
 2. apt install wget imagemagick git zim-tools
 3. git clone https://github.com/ballerburg9005/wget-2-zim
@@ -73,6 +74,7 @@ Another problem that might happen is, that zimwriterfs complains about "--illust
 ## building zim-tools by hand (not recommended) in Ubuntu
 
 ```
+sudo bash
 apt install meson ninja-build build-essential cmake pkg-config autoconf automake libtool liblzma-dev lzma libzstd-dev xapian-tools libxapian-dev libicu-dev libgtest-dev libdocopt-dev zlib1g-dev libgumbo-dev libmagic-dev 
 cd ~/
 git clone https://github.com/kainjow/Mustache
