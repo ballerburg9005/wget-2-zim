@@ -85,6 +85,8 @@ git clone https://github.com/openzim/zim-tools
 cd zim-tools; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
 git clone ttps://github.com/openzim/zimwriterfs
 cd zimwriterfs; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
+echo "/usr/local/lib" | tee /etc/ld.so.conf.d/local.conf
+ldconfig
 ```
 
 # known issues
