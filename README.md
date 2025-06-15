@@ -9,7 +9,7 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 # how to use 
 
-**First install those dependencies: wget, imagemagick, zim-tools (git version)**
+**First install those dependencies: wget, imagemagick, zim-tools, zimwriterfs** (the latter might not exist as single package yet)
 
 *(Beginners: read the "troubleshooting" section for possible command chain.)*
 
@@ -47,27 +47,41 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 [Please do not run Windows](https://ballerburg.us.to/about-your-obligation-to-boycott-windows-11/). However if you really must, then there are basically two easy methods to do it: 
 
 1. [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy) - integrated Linux environment from Microsoft, more similar to a virtual machine (runs Linux binaries)
-2. [MSYS2](https://www.msys2.org/) (even easier and faster; use this one) - tons of Linux programs and tools compiled for Windows to create a Linux-alike environment for devs
+2. [MSYS2](https://www.msys2.org/) NOT VIABLE ANYMORE! Don't try.
 
-## MSYS2 
+## WSL2 
 
-1. Download and click though the [installer](https://www.msys2.org/) 
-2. Open MSYS2 MINGW64 (drops you into Linux shell)
-3. pacman -S wget imagemagick git
-4. git clone https://github.com/openzim/zim-tools
-5. cd zim-tools; meson . build; ninja -C build; ninja -C build install; cd ~/
-6. git clone https://github.com/ballerburg9005/wget-2-zim
-7. ./wget-2-zim/wget-2-zim.sh https://example.org
+Follow one of the many [tutorials](https://www.youtube.com/watch?v=pOZ5Pb4pHOY) to set up WSL2 on Windows. Make sure to use the latest image of Ubuntu and not Debian (or other distributions which might have severely outdated packages).
 
-*I have not actually tested this, but it is really that simple. If pacman complains when downloading try pacman -Sy first.*
+Then follow the steps in section "Ubuntu"
+
+## Ubuntu
+
+1. apt install wget imagemagick git zim-tools
+2. apt install zimwriterfs # if this fails ignore it
+3. git clone https://github.com/ballerburg9005/wget-2-zim
+4. ./wget-2-zim/wget-2-zim.sh https://example.org
+
+*I have not actually tested this!*
 
 # troubleshooting for beginners
 
 If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. 
 
-If you look at the steps 3-7 in "MSYS2" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#3) will only work on Archlinux, since "pacman" is a specific package manager, and it differs between Linux distributions. On Debian or Ubuntu for example, you would use "apt install" instead of "pacman -S" to install those 3 packages. Thus please adapt step #3 appropriately.
+If you look at the steps 1-4 in "WSL2" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
 
-Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and follow steps 4-6 from the "MSYS" section.
+Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and build zim-tools by hand. Unfortunately building zim-tools by hand has become increasingly challenging and prone to error nowadays.
+
+Untested build chain for zim-tools:
+```
+# You need probably install a lot of dependencies along the way with your package manager!
+git clone https://github.com/openzim/libzim
+cd libzim; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
+git clone https://github.com/openzim/zim-tools
+cd zim-tools; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
+git clone ttps://github.com/openzim/zimwriterfs
+cd zimwriterfs; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
+```
 
 # known issues
 
