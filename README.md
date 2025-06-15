@@ -53,9 +53,9 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 
 Follow one of the many [tutorials](https://www.youtube.com/watch?v=pOZ5Pb4pHOY) to set up WSL2 on Windows. Make sure to use the latest image of Ubuntu and not Debian (or other distributions which might have severely outdated packages).
 
-Then follow the steps in section "Ubuntu"
+Then follow the steps in section "running on Ubuntu".
 
-## Ubuntu
+# running on Ubuntu
 
 1. apt install wget imagemagick git zim-tools
 2. apt install zimwriterfs # if this fails ignore it
@@ -68,7 +68,7 @@ Then follow the steps in section "Ubuntu"
 
 If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. 
 
-If you look at the steps 1-4 in "Ubuntu" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
+If you look at the steps 1-4 in "running on Ubuntu" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
 
 Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and build zim-tools by hand. Unfortunately building zim-tools by hand has become increasingly challenging and prone to error nowadays.
 
