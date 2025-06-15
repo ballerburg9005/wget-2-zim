@@ -85,8 +85,15 @@ git clone https://github.com/openzim/zim-tools
 cd zim-tools; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
 git clone ttps://github.com/openzim/zimwriterfs
 cd zimwriterfs; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
+```
+
+For poor environments:
+```
+# fixes error libzim.so.9 not found
 echo "/usr/local/lib" | tee /etc/ld.so.conf.d/local.conf
 ldconfig
+# potentially fixes error zimwriterfs not found (edit /etc/environment for permanent solution)
+export PATH="/usr/local/sbin:/usr/local/bin:$PATH"
 ```
 
 # known issues
