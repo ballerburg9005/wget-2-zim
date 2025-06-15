@@ -47,7 +47,7 @@ tries to include as much as sanely possible (like PDFs, XLS files, music and vid
 [Please do not run Windows](https://ballerburg.us.to/about-your-obligation-to-boycott-windows-11/). However if you really must, then there are basically two easy methods to do it: 
 
 1. [WSL2](https://docs.microsoft.com/en-us/windows/wsl/setup/environment) (fairly easy) - integrated Linux environment from Microsoft, more similar to a virtual machine (runs Linux binaries)
-2. [MSYS2](https://www.msys2.org/) NOT VIABLE ANYMORE! Don't try.
+2. [MSYS2](https://www.msys2.org/) Great tool, but NOT VIABLE ANYMORE FOR ZIM-TOOLS! Don't try.
 
 ## WSL2 
 
