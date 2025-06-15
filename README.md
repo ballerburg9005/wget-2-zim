@@ -9,7 +9,7 @@ Please note that wget has very very limited ability to deal with Javascript, whi
 
 # how to use 
 
-**First install those dependencies: wget, imagemagick, zim-tools, zimwriterfs** (the latter might not exist as single package yet)
+**First install those dependencies: wget, imagemagick, zim-tools**
 
 *(Beginners: read the "troubleshooting" section for possible command chain.)*
 
@@ -59,21 +59,24 @@ Then follow the steps in section "running on Ubuntu".
 
 1. apt update
 2. apt install wget imagemagick git zim-tools
-3. apt install zimwriterfs # if this fails ignore it
-4. git clone https://github.com/ballerburg9005/wget-2-zim
-5. ./wget-2-zim/wget-2-zim.sh https://example.org
+3. git clone https://github.com/ballerburg9005/wget-2-zim
+4. ./wget-2-zim/wget-2-zim.sh https://example.org
 
 # troubleshooting for beginners
 
 If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. 
 
-If you look at the steps 1-5 in "running on Ubuntu" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
+If you look at the steps 1-3 in "running on Ubuntu" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
 
-Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and build zim-tools by hand. Unfortunately building zim-tools by hand has become increasingly challenging and prone to error nowadays.
+Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and build zim-tools by hand. 
 
-Untested build chain for zim-tools:
+## building zim-tools by hand (not recommended) in Ubuntu
+
 ```
-# You need probably install a lot of dependencies along the way with your package manager!
+apt install meson ninja-build build-essential cmake pkg-config autoconf automake libtool liblzma-dev lzma libzstd-dev xapian-tools libxapian-dev libicu-dev libgtest-dev libdocopt-dev zlib1g-dev libgumbo-dev libmagic-dev 
+cd ~/
+git clone https://github.com/kainjow/Mustache
+cp Mustache/mustache.hpp /usr/include/
 git clone https://github.com/openzim/libzim
 cd libzim; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
 git clone https://github.com/openzim/zim-tools
