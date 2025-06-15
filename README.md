@@ -57,18 +57,17 @@ Then follow the steps in section "running on Ubuntu".
 
 # running on Ubuntu
 
-1. apt install wget imagemagick git zim-tools
-2. apt install zimwriterfs # if this fails ignore it
-3. git clone https://github.com/ballerburg9005/wget-2-zim
-4. ./wget-2-zim/wget-2-zim.sh https://example.org
-
-*I have not actually tested this!*
+1. apt update
+2. apt install wget imagemagick git zim-tools
+3. apt install zimwriterfs # if this fails ignore it
+4. git clone https://github.com/ballerburg9005/wget-2-zim
+5. ./wget-2-zim/wget-2-zim.sh https://example.org
 
 # troubleshooting for beginners
 
 If you get the error "convert: command not found" or "zimwriterfs: command not found" it means that you did not install the necessary dependencies as instructed in the "how to use" section. 
 
-If you look at the steps 1-4 in "running on Ubuntu" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
+If you look at the steps 1-5 in "running on Ubuntu" section, you can see what the exact commands for a proper installation should look like. However, you have to understand that the first step (#1) will only work on Ubuntu and Debian-alike systems, since "apt" is a specific package manager, and it differs between Linux distributions. Thus please adapt step #1 appropriately.
 
 Another problem that might happen is, that zimwriterfs complains about "--illustration" option being unknown (or some other option). This is because you are using an outdated version of zim-tools. Please uninstall it and build zim-tools by hand. Unfortunately building zim-tools by hand has become increasingly challenging and prone to error nowadays.
 
