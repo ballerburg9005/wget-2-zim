@@ -81,7 +81,7 @@ WELCOME="$(echo "$URL" | sed 's#^[^/]*//##g;' | grep -o "/.*$" | sed 's/\?/%3F/g
 # download with wget
 
 function thewget {
-wget -r -p -k -c --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=$WGGETWAIT --tries=6 \
+wget -r -p -k -c --trust-server-names --level="${OPTS[wget-depth]}" --timeout=3s --no-check-certificate -e robots=off --wait=$WGGETWAIT --tries=6 \
 	--reject "$WGETREJECT" \
 	--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 	--header="X-Requested-With: XMLHttpRequest" --referer="$DOMAIN" --header='Accept-Language: en' \
@@ -135,7 +135,7 @@ for url in $(printf "%s\n%s" "$urls_single" "$urls_double"); do
 		|| grep -qFoax "$url" $EXTERNALURLS \
 		|| echo "$WGETREJECT" | grep -Foaq "$(echo "$url" | sed -E 's#(.*)(\.[^\?\.]*)(\?.*)*$#\2#g')" ; }; then
 		echo "DEBUG: $url ( requested by: $FILE )"
-		wget --timeout=3s --no-check-certificate -e robots=off --tries=6 -p \
+		wget --trust-server-names --timeout=3s --no-check-certificate -e robots=off --tries=6 -p \
 			--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36" \
 			--header="X-Requested-With: XMLHttpRequest" --referer="$DOMAIN" \
 			--reject "$WGETREJECT" \
