@@ -20,27 +20,39 @@ Then run this command:
 Now just open the ZIM file in Kiwix.
 
 ## options
+
 ```
 ./wget-2-zim.sh [OPTIONS] URL
-Makes ZIM file from URL with recursive wget and lots of tricks.
- 
-wget-2-zim tries to make a bunch of smart decisions what to include in the ZIM, but it still
-tries to include as much as sanely possible (like PDFs, XLS files, music and video).
- 
---any-max	[SIZE (MB)]	Any file larger will be deleted before doing the ZIM no matter what. Default = 128MB
---not-media-max [SIZE (MB)]	Any file larger that is not music, video, picture or epub, pdf, xls alike will be excluded. Default = 2MB
---picture-max 	[SIZE (MB)]	Any picture file larger will be excluded from ZIM. Default = unset
---document-max 	[SIZE (MB)]	Any document file larger will be excluded from ZIM (epub, pdf, xls, ods, etc.). Default = unset
---music-max 	[SIZE (MB)]	Any music file larger will be excluded from ZIM. Default = unset
---video-max 	[SIZE (MB)]	Any video file larger will be excluded from ZIM. Default = unset
---wget-depth			Set this to 1 or 3 if you want to make very shallow copies. Default = 7
---include-zip 			Includes all sorts of archives (zip, rar, 7z, gz, etc).
---include-exe			Includes all sorts of program files (exe, msi, deb, rpm, etc).
---include-any			Download any file type.
---no-overreach-media		Don't overreach by downloading media files from external domains (might affect images directly visible on the page).
---overreach-any			Overreach by downloading any sort of src= and href= content from external domains.
---turbo				Disable all download delays (will probably result in half the files missing due to throttling with false 404s)
 ```
+
+Makes ZIM file from URL with recursive wget and lots of tricks.
+
+wget-2-zim tries to make a bunch of smart decisions what to include in the ZIM, but it still tries to include as much as sanely possible (like PDFs, XLS files, music and video).
+
+| Option | Argument | Description | Default |
+|--------|----------|-------------|---------|
+| `--any-max` | SIZE_MB | Any file larger will be deleted before ZIM creation | 128MB |
+| `--not-media-max` | SIZE_MB | Max size for non-media files (not music, video, picture, epub, pdf, xls) | 2MB |
+| `--picture-max` | SIZE_MB | Max size for picture files | unset |
+| `--document-max` | SIZE_MB | Max size for documents (epub, pdf, xls, ods, etc.) | unset |
+| `--music-max` | SIZE_MB | Max size for music files | unset |
+| `--video-max` | SIZE_MB | Max size for video files | unset |
+| `--wget-depth` | NUMBER | Recursion depth (use 1 or 3 for shallow copies) | 7 |
+| `--include-zip` | | Include archives (zip, rar, 7z, gz, etc.) | |
+| `--include-exe` | | Include program files (exe, msi, deb, rpm, etc.) | |
+| `--include-any` | | Download any file type | |
+| `--no-overreach-media` | | Don't download media files from external domains | |
+| `--overreach-any` | | Download any src=/href= content from external domains | |
+| `--turbo` | | Disable download delays (may result in missing files) | |
+| `--skip-download` | | Skip wget download step, use existing files in directory | |
+| `--creator` | STRING | Custom creator string for ZIM file | https://github.com/ballerburg9005/wget-2-zim |
+| `--publisher` | STRING | Custom publisher string for ZIM file | wget-2-zim, a simple easy to use script that just works |
+| `--description` | STRING | Custom description for ZIM file | extracted from page title |
+| `--long-description` | STRING | Custom long description for ZIM file | description + '(created by wget-2-zim)' |
+| `--language` | CODE | ISO 639-3 language code for ZIM file | eng |
+| `--output` | NAME | Custom output file name | domain name |
+| `--working-dir` | PATH | Custom working directory name | domain name |
+| `--timestamp` | | Add timestamp (YYYYMMDD_hhmmss) to ZIM file name | |
 
 # running under Windows
 
@@ -57,11 +69,12 @@ Then follow the steps in section "running on Ubuntu".
 
 # running on Ubuntu
 
-0. sudo bash
-1. apt update
-2. apt install wget imagemagick git zim-tools
-3. git clone https://github.com/ballerburg9005/wget-2-zim
-4. ./wget-2-zim/wget-2-zim.sh https://example.org
+```bash
+sudo apt update
+sudo apt install wget imagemagick git zim-tools
+git clone https://github.com/ballerburg9005/wget-2-zim
+./wget-2-zim/wget-2-zim.sh https://example.org
+```
 
 # troubleshooting for beginners
 
@@ -83,7 +96,7 @@ git clone https://github.com/openzim/libzim
 cd libzim; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
 git clone https://github.com/openzim/zim-tools
 cd zim-tools; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
-git clone ttps://github.com/openzim/zimwriterfs
+git clone https://github.com/openzim/zimwriterfs
 cd zimwriterfs; meson setup build -Dwerror=false; ninja -C build; ninja -C build install; cd ~/
 ```
 
